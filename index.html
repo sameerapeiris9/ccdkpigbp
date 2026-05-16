@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GBP Balance</title>
+<script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f6f9;--card:#fff;--bdr:#e2e8f0;--surf:#f1f5f9;
+  --t1:#0f172a;--t2:#475569;--t3:#94a3b8;--t4:#cbd5e1;
+  --up:#16a34a;  --up-bg:#dcfce7;  --up-dk:#15803d;
+  --dn:#dc2626;  --dn-bg:#fee2e2;  --dn-dk:#b91c1c;
+  /* GBP accent — Union Jack navy */
+  --gbp:#012169; --gbp-bg:#eef2ff; --gbp-bdr:#c7d2fe;
+}
+html,body{
+  width:100%;height:100%;
+  background:var(--bg);
+  font-family:'Inter',-apple-system,sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+#app{width:calc(100% - 14px);max-width:260px;}
+
+/* ── CARD ── */
+#card{
+  background:var(--card);
+  border-radius:14px;
+  border:0.5px solid var(--bdr);
+  overflow:hidden;
+  position:relative;
+  box-shadow:
+    0 1px 2px rgba(15,23,42,.04),
+    0 4px 12px rgba(15,23,42,.07),
+    0 14px 36px rgba(15,23,42,.05);
+}
+
+/* top accent stripe — colour follows direction */
+#stripe{
+  height:3px;width:100%;
+  background:var(--gbp);
+  transition:background .25s ease;
+}
+
+/* ── BODY ── */
+.body{
+  padding:10px 13px 11px;
+  display:flex;flex-direction:column;gap:8px;
+}
+
+/* ── ROW 1: flag badge left | delta chip right ── */
+.top-row{
+  display:flex;align-items:center;
+  justify-content:space-between;gap:8px;
+}
+
+/* flag badge */
+.flag-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--gbp-bg);
+  border:0.5px solid var(--gbp-bdr);
+  border-radius:6px;
+  padding:3px 8px 3px 5px;
+  flex-shrink:0;
+}
+.flag-icon{
+  width:18px;height:12px;
+  border-radius:2px;overflow:hidden;
+  flex-shrink:0;display:block;
+}
+.flag-lbl{
+  font-size:9px;font-weight:700;
+  letter-spacing:.06em;color:var(--gbp);
+}
+
+/* delta chip */
+#dchip{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:6px;
+  white-space:nowrap;flex-shrink:0;
+  font-variant-numeric:tabular-nums;
+  transition:background .25s,color .25s;
+  background:var(--gbp-bg);color:var(--gbp);
+}
+
+/* ── ROW 2: hero number left | "vs yesterday" right ── */
+.hero-row{
+  display:flex;align-items:center;
+  justify-content:space-between;gap:6px;
+}
+.hero-left{display:flex;align-items:baseline;gap:4px;}
+#hnum{
+  font-size:30px;font-weight:700;color:var(--t1);
+  letter-spacing:-0.03em;line-height:1;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.hunit{
+  font-size:11px;font-weight:400;
+  color:var(--t4);letter-spacing:.04em;
+}
+#vs-lbl{
+  font-size:9px;color:var(--t4);
+  white-space:nowrap;flex-shrink:0;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="card">
+    <div id="stripe"></div>
+    <div class="body">
+
+      <!-- Row 1: UK flag + delta chip -->
+      <div class="top-row">
+        <div class="flag-badge">
+          <!-- UK Union Jack SVG -->
+          <svg class="flag-icon" viewBox="0 0 18 12" xmlns="http://www.w3.org/2000/svg">
+            <!-- navy background -->
+            <rect width="18" height="12" fill="#012169"/>
+            <!-- white diagonal cross (X) -->
+            <line x1="0" y1="0"  x2="18" y2="12" stroke="#fff" stroke-width="2.4"/>
+            <line x1="18" y1="0" x2="0"  y2="12" stroke="#fff" stroke-width="2.4"/>
+            <!-- red diagonal cross (X) thinner -->
+            <line x1="0" y1="0"  x2="18" y2="12" stroke="#C8102E" stroke-width="1.2"/>
+            <line x1="18" y1="0" x2="0"  y2="12" stroke="#C8102E" stroke-width="1.2"/>
+            <!-- white vertical + horizontal cross -->
+            <rect x="7.5" y="0" width="3" height="12" fill="#fff"/>
+            <rect x="0" y="4.5" width="18" height="3" fill="#fff"/>
+            <!-- red vertical + horizontal cross -->
+            <rect x="8" y="0" width="2" height="12" fill="#C8102E"/>
+            <rect x="0" y="5" width="18" height="2" fill="#C8102E"/>
+          </svg>
+          <span class="flag-lbl">GBP</span>
+        </div>
+
+        <div id="dchip">
+          <svg id="dsvg" width="9" height="9" viewBox="0 0 9 9" fill="none"></svg>
+          <span id="dtxt">—</span>
+        </div>
+      </div>
+
+      <!-- Row 2: hero number | vs yesterday -->
+      <div class="hero-row">
+        <div class="hero-left">
+          <span id="hnum">—</span>
+          <span class="hunit">Mn</span>
+        </div>
+        <span id="vs-lbl">vs yesterday</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+(function(){
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ── Mn helpers — identical to USD card ── */
+  function toMn(n){
+    if(n===null||isNaN(n)) return '—';
+    var abs=Math.abs(n), s=n<0?'-':'';
+    return s+(abs>=1e3?abs/1e6:abs).toFixed(2);
+  }
+  function signMn(n){
+    if(n===null||isNaN(n)) return null;
+    var abs=Math.abs(n), s=n>=0?'+':'-';
+    return s+(abs>=1e3?abs/1e6:abs).toFixed(2);
+  }
+  function pctOf(d,a){
+    if(!a||!d||a===0) return null;
+    var aMn=Math.abs(a)>=1e3?a/1e6:a;
+    var dMn=Math.abs(d)>=1e3?d/1e6:d;
+    var prev=aMn-dMn;
+    if(Math.abs(prev)<0.0001) return null;
+    return (dMn/Math.abs(prev))*100;
+  }
+
+  /* ── count-up animation — identical to USD card ── */
+  function countUp(target){
+    var el=$('hnum');
+    var abs=Math.abs(target);
+    var end=abs>=1e3?abs/1e6:abs;
+    var sign=target<0?'-':'';
+    var duration=800, steps=50, step=0;
+    var start=parseFloat(el.textContent.replace(/[^0-9.]/g,''))||0;
+    if(start===end){el.textContent=sign+end.toFixed(2);return;}
+    clearInterval(el._timer);
+    el._timer=setInterval(function(){
+      step++;
+      var t=1-Math.pow(1-step/steps,3);
+      el.textContent=sign+(start+(end-start)*t).toFixed(2);
+      if(step>=steps){clearInterval(el._timer);el.textContent=sign+end.toFixed(2);}
+    },duration/steps);
+  }
+
+  /* ── theme — stripe + chip follow direction ── */
+  function applyTheme(dir){
+    var T={
+      up:  {
+        stripe:'#16a34a',
+        chipBg:'#dcfce7',chipClr:'#15803d',
+        svg:'<polyline points="1,8 4.5,1 8,8" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
+      },
+      down:{
+        stripe:'#dc2626',
+        chipBg:'#fee2e2',chipClr:'#b91c1c',
+        svg:'<polyline points="1,1 4.5,8 8,1" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
+      },
+      neu: {
+        stripe:'#012169',
+        chipBg:'#eef2ff',chipClr:'#012169',
+        svg:'<line x1="1" y1="4.5" x2="8" y2="4.5" stroke="#012169" stroke-width="1.8" stroke-linecap="round"/>'
+      }
+    }[dir]||{};
+    $('stripe').style.background = T.stripe;
+    var chip=$('dchip');
+    chip.style.background = T.chipBg;
+    chip.style.color      = T.chipClr;
+    $('dsvg').innerHTML   = T.svg;
+  }
+
+  /* ── confirmed working data pattern ── */
+  async function getData(ws){
+    var rows=[], reader=await ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true});
+    for(var i=0;i<reader.pageCount;i++){
+      var pg=await reader.getPageAsync(i);
+      pg.data.forEach(function(r){
+        var row={};
+        pg.columns.forEach(function(c,idx){row[c.fieldName]=r[idx];});
+        rows.push(row);
+      });
+    }
+    await reader.releaseAsync();
+    return rows;
+  }
+
+  async function getEnc(ws){
+    var spec=await ws.getVisualSpecificationAsync(), map={};
+    if(spec.activeMarksSpecificationIndex<0) return map;
+    var marks=spec.marksSpecifications[spec.activeMarksSpecificationIndex];
+    marks.encodings.forEach(function(e){map[e.id]=e.field;});
+    return map;
+  }
+
+  /* ── render — card always visible, no show/hide ── */
+  function render(data, enc){
+    if(!enc.actual||!data.length) return;
+
+    var row=data[0];
+    function dv(id){return enc[id]?row[enc[id].name]||null:null;}
+    function num(id){
+      var d=dv(id);if(!d) return null;
+      var n=parseFloat(d.nativeValue!==undefined?d.nativeValue:d.value);
+      return isNaN(n)?null:n;
+    }
+
+    var actualN=num('actual');
+    var deltaN =num('delta');
+    if(actualN===null) return;
+
+    countUp(actualN);
+
+    var dir=deltaN===null?'neu':deltaN>0?'up':deltaN<0?'down':'neu';
+    applyTheme(dir);
+
+    if(deltaN!==null){
+      var sb  = signMn(deltaN);
+      var pct = pctOf(deltaN,actualN);
+      $('dtxt').textContent = sb+' Mn'+(pct!==null?'  '+(pct>=0?'+':'')+pct.toFixed(2)+'%':'');
+    } else {
+      $('dtxt').textContent = 'No delta';
+      $('dsvg').innerHTML   = '';
+    }
+  }
+
+  /* ── confirmed working init pattern ── */
+  window.onload = tableau.extensions.initializeAsync().then(function(){
+    var ws = tableau.extensions.worksheetContent.worksheet;
+    var update = async function(){
+      var data = await getData(ws);
+      var enc  = await getEnc(ws);
+      render(data, enc);
+    };
+    ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, update);
+    update();
+  });
+
+})();
+</script>
+</body>
+</html>
